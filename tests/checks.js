@@ -125,7 +125,7 @@ describe("Quiz server", function () {
         }
     });
     it(`4(Precheck): Comprobando que se muestra la lista de quizzes...`, async function () { 
-        this.score = 1;
+        this.score = 0;
         if (error_critical) {
             this.msg_err = error_critical;
             should.not.exist(error_critical);
@@ -141,7 +141,7 @@ describe("Quiz server", function () {
     });
 
     it('5(Precheck): Comprobando que se puede jugar a los quizzes...', async function () {
-        this.score = 3;
+        this.score = 0;
         if (error_critical) {
             this.msg_err = error_critical;
             should.not.exist(error_critical);
@@ -184,7 +184,7 @@ describe("Quiz server", function () {
     });
 
     it('6: Comprobando que se pueden editar los quizzes ...', async function () { 
-        this.score = 3;
+        this.score = 5;
         if (error_critical) {
             this.msg_err = error_critical;
             should.not.exist(error_critical);
@@ -234,7 +234,7 @@ describe("Quiz server", function () {
     });
 
     it(`7: Comprobando que se pueden borrar los quizzes...`, async function () { 
-        this.score = 2;
+        this.score = 5;
         if (error_critical) {
             this.msg_err = error_critical;
             should.not.exist(error_critical);
