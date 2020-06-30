@@ -149,7 +149,7 @@ describe("Quiz server", function () {
             const expected = /Result/i;
             let error_nav = null;
 
-            this.msg_err = `No se puede acceder s ${URL}`;
+            this.msg_err = `No se puede acceder a ${URL}`;
             [error_nav, resp] = await Utils.to(browser.visit(URL));
             if (error_nav) {
                 should.not.exist(error_nav);
