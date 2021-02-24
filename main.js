@@ -23,27 +23,29 @@ const Quiz = sequelize.define( // define Quiz model (table quizzes)
     }
 );
 
-sequelize.sync() // Syncronize DB and seed if needed
-    .then(() => Quiz.count())
-    .then(count => {
+(async () => {  // IIFE - Immediatedly Invoked Function Expresión
+    try {
+        await sequelize.sync(); // Syncronize DB and seed if needed
+        const count = await Quiz.count();
         if (count === 0) {
-            return Quiz.bulkCreate([
-                    { question: "Capital of Italy", answer: "Rome" },
-                    { question: "Capital of France", answer: "Paris" },
-                    { question: "Capital of Spain", answer: "Madrid" },
-                    { question: "Capital of Portugal", answer: "Lisbon" }
-                ])
-                .then(c => console.log(`DB filled with ${c.length} quizzes.`));
+            const c = await Quiz.bulkCreate([
+                {question: "Capital of Italy", answer: "Rome"},
+                {question: "Capital of France", answer: "Paris"},
+                {question: "Capital of Spain", answer: "Madrid"},
+                {question: "Capital of Portugal", answer: "Lisbon"}
+            ]);
+            console.log(`DB filled with ${c.length} quizzes.`);
         } else {
             console.log(`DB exists & has ${count} quizzes.`);
         }
-    })
-    .catch((err) => console.log(err));
-
+    } catch (err) {
+        console.log(err);
+    }
+})();
 
 // ========== VIEWs ==========
-
-const CSS_STYLE = `
+// CSS style to include into the views:
+const style = `
         <style>
             .button { display: inline-block; text-decoration: none;
                 padding: 2px 6px; margin: 2px;
@@ -52,14 +54,14 @@ const CSS_STYLE = `
             .button:hover { background: #356094; }
         </style>`;
 
-// Render all quizzes (quizzes: array of quiz)
+// View to display all the quizzes in quizzes array
 const indexView = quizzes =>
     `<!doctype html>
     <html>
     <head>
         <meta charset="utf-8">
-        <title>P7: Quiz</title>
-        ${CSS_STYLE}
+        <title>Quiz</title>
+        ${style}
     </head>
     <body>
         <h1>Quizzes</h1>` +
@@ -77,73 +79,74 @@ const indexView = quizzes =>
     </html>`;
 
 
-// Render play view for quiz showing question 
-// response: hidden param received from 'Try again'
-//    with previous quiz response to initialize form input
+// View with form for trying to guess quiz
+// response - text of last trial (hidden param)
 const playView = (quiz, response) =>
     `<!doctype html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <title>P7: Quiz</title>
-        ${CSS_STYLE}
-    </head>
-    <body>
-        <h1>Play Quiz</h1>
-        <form method="get" action="/quizzes/${quiz.id}/check">
-            ${quiz.question}: <br />
-            <input type="text" name="response" value="${response}" placeholder="Answer" />
-            <input type="submit" class="button" value="Check" /> <br />
-        </form>
-        <a href="/quizzes" class="button">Go back</a>
-    </body>
-    </html>`;
+  <html>
+  <head>
+      <meta charset="utf-8">
+      <title>Quiz</title>
+      ${style}
+  </head>
+  <body>
+      <h1>Play Quiz</h1>
+      <form method="get" action="/quizzes/${quiz.id}/check">
+          <label for="response">${quiz.question}: </label>
+          <br>
+          <input type="text" name="response" value="${response}" placeholder="Answer">
+          <input type="submit" class="button" value="Check">
+      </form>
+      <br>
+      <a href="/quizzes" class="button">Go back</a>
+  </body>
+  </html>`;
 
-// Render result view of quiz guess trial 
-// id: DB id of quiz send by 'Try again'
-// msg: result of trying to guess the quiz
-// response: hidden param send by 'Try again' with previous response
+
+// View with the result of trying to guess the quiz.
+// id - played quiz id
+// msg - result of trial
+// response - user answer for next trial
 const resultView = (id, msg, response) =>
     `<!doctype html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <title>P7: Quiz</title>
-         ${CSS_STYLE}
-   </head>
-    <body>
-        <h1>Result</h1>
-        <div id="msg"><strong>${msg}</strong></div>
-        <a href="/quizzes" class="button">Go back</a>
-        <a href="/quizzes/${id}/play?response=${response}" class="button">Try again</a>
-    </body>
-    </html>`;
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <title>Quiz</title>
+      ${style}
+  </head>
+  <body>
+    <h1>Result</h1>
+    <div id="msg"><strong>${msg}</strong></div>
+    <a href="/quizzes" class="button">Go back</a>
+    <a href="/quizzes/${id}/play?response=${response}" class="button">Try again</a>
+  </body>
+  </html>`;
 
 
-//Render form to create a new quiz
-const newView = () => {
+// View to show the form to create a new quiz.
+const newView = quiz => {
     return `<!doctype html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <title>P7: Quiz</title>
-        ${CSS_STYLE}
-    </head>
-    <body>
-        <h1>Create New Quiz</h1>
-        <form method="POST" action="/quizzes">
-            Question: <input type="text" name="question" value="" placeholder="Question" /> <br />
-            Answer: <input type="text" name="answer"   value=""   placeholder="Answer" />
-            <input type="submit" class="button" value="Create" /> <br />
-        </form>
-        <a href="/quizzes" class="button">Go back</a>
-    </body>
-    </html>`;
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <title>Quiz</title>
+    ${style}
+  </head>
+  <body>
+    <h1>Create New Quiz</h1>
+    <form method="POST" action="/quizzes">
+      ${commonPart(quiz)}
+      <input type="submit" class="button" value="Create">
+    </form>
+    <br>
+    <a href="/quizzes" class="button">Go back</a>
+  </body>
+  </html>`;
 }
 
 
-//Render form to edit quiz
-// quiz: response and answer to initialize form input
+// View to show a form to edit a given quiz.
 const editView = (quiz) => {
     // .... introducir código
 }
@@ -152,58 +155,66 @@ const editView = (quiz) => {
 // ========== CONTROLLERs ==========
 
 // GET /, GET /quizzes
-const indexController = (req, res, next) => {
-    Quiz.findAll()
-        .then(quizzes => res.send(indexView(quizzes)))
-        .catch(next);
-}
+const indexController = async (req, res, next) => {
+    try {
+        const quizzes = await Quiz.findAll()
+        res.send(indexView(quizzes))
+    } catch (err) {
+        next(err);
+    }
+};
 
 //  GET  /quizzes/:id/play
-const playController = (req, res, next) => {
-
+const playController = async (req, res, next) => {
     const id = Number(req.params.id);
-    if (Number.isNaN(id)) return next(new Error(`id "${req.params.id}" is not a number.`));
+    if (Number.isNaN(id)) return next(new Error(`"${req.params.id}" should be number.`));
 
-    const response = req.query.response || ""; // hidden param for 'Try again'
+    const response = req.query.response || "";
 
-    Quiz.findByPk(id)
-        .then(quiz => quiz ?
-            res.send(playView(quiz, response)) :
-            next(new Error(`Quiz ${id} not found.`)))
-        .catch(next);
+    try {
+        const quiz = await Quiz.findByPk(id);
+        if (quiz) res.send(playView(quiz, response));
+        else next(new Error(`Quiz ${id} not found.`));
+    } catch (err) {
+        next(err)
+    }
 };
 
 //  GET  /quizzes/:id/check
-const checkController = (req, res, next) => {
-    const response = (req.query.response).toLowerCase().trim();
+const checkController = async (req, res, next) => {
+    const response = req.query.response;
 
     const id = Number(req.params.id);
-    if (Number.isNaN(id)) return next(new Error(`id "${req.params.id}" is not a number.`));
+    if (Number.isNaN(id)) return next(new Error(`"${req.params.id}" should be number.`));
 
-    Quiz.findByPk(id)
-        .then(quiz => {
-            if (!quiz) return next(new Error(`Quiz ${id} not found.`));
-
-            const msg = ((quiz.answer).toLowerCase().trim() === response) ?
-                `Yes, "${response}" is the ${quiz.question}` :
-                `No, "${response}" is not the ${quiz.question}`;
-            res.send(resultView(id, msg, response));
-        })
-        .catch(next);
+    try {
+        const quiz = await Quiz.findByPk(id);
+        if (!quiz) return next(new Error(`Quiz ${id} not found.`));
+        let msg = (quiz.answer.toLowerCase().trim() === response.toLowerCase().trim())
+            ? `Yes, "${response}" is the ${quiz.question}`
+            : `No, "${response}" is not the ${quiz.question}`;
+        res.send(resultView(id, msg, response));
+    } catch (err) {
+        next(err)
+    }
 };
 
 // GET /quizzes/new
-const newController = (req, res, next) => {
-    res.send(newView());
+const newController = async (req, res, next) => {
+    const quiz = {question: "", answer: ""};
+    res.send(newView(quiz));
 };
 
 // POST /quizzes
-const createController = (req, res, next) => {
-    let { question, answer } = req.body;
+const createController = async (req, res, next) => {
+    const {question, answer} = req.body;
 
-    Quiz.create({ question, answer })
-        .then(quiz => res.redirect('/quizzes'))
-        .catch(next);
+    try {
+        await Quiz.create({question, answer});
+        res.redirect(`/quizzes`);
+    } catch (err) {
+        next(err)
+    }
 };
 
 //  GET /quizzes/:id/edit
@@ -229,6 +240,7 @@ app.get('/quizzes/:id/play', playController);
 app.get('/quizzes/:id/check', checkController);
 app.get('/quizzes/new', newController);
 app.post('/quizzes', createController);
+
 
 // ..... crear rutas e instalar los MWs para:
 //   GET  /quizzes/:id/edit
