@@ -50,7 +50,7 @@ DELETE  /quizzes/:id
 El esqueleto de esta app está estructurado con el patrón MVC (Model-Vista-Controller). MVC se utiliza mucho en aplicaciones Web de cliente y de servidor, porque estructura de forma clara y concisa una aplicación. A continuación se describen los componentes de la estructura MVC con más detalle y dando instrucciones sobre los nuevos componentes a realizar en este ejercicio.
 
 
-### Modelo
+### Modelo
 
 El modelo define el almacén y el formato de datos para la lista de quizzes. Se define una BBDD gestionada con SQLite3 con una sola tabla donde guardar los quizzes.
 Cualquier cambio realizado por un cliente debe guardarse en la BBDD del servidor. De esta forma todos los demás clientes tendrán acceso a dicho cambio. Por ejemplo, si un cliente añade un nuevo quiz, este se mostrará a todos los clientes que accedan al servidor después de ser creado. Lo mismo ocurrirá cuando los quizzes se modifiquen o se borren. Esto es totalmente diferente de la aplicación Quiz de cliente, donde el modelo se guarda en localStorage en el navegador, y el modelo es privado a cada navegador. En este caso los cambios solo los ve el cliente que se ejecuta sobre ese navegador, pero nadie más. 
