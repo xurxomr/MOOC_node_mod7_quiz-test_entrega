@@ -140,7 +140,7 @@ const newView = quiz => {
       <input type="text" name="question" value="${quiz.question}" placeholder="Question"> 
       <br>
       <label for="answer">Answer: </label>
-      <input type="text" name="answer" value="${quiz.answer}" placeholder="Answer">`
+      <input type="text" name="answer" value="${quiz.answer}" placeholder="Answer">
       <input type="submit" class="button" value="Create">
     </form>
     <br>
