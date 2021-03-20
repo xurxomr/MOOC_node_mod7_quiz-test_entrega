@@ -45,18 +45,77 @@ const Quiz = sequelize.define( // define Quiz model (table quizzes)
 
 // ========== VIEWs ==========
 // CSS style to include into the views:
-const style = `
-        <style>
-            .button { display: inline-block; text-decoration: none;
-                padding: 2px 6px; margin: 2px;
-                background: #4479BA; color: #FFF;
-                border-radius: 4px; border: solid 1px #20538D; }
-            .button:hover { background: #356094; }
-        </style>`;
 
-// View to display all the quizzes in quizzes array
-const indexView = quizzes =>
-    `<!doctype html>
+const style = `
+    <style>
+		html,
+		body {
+			font-family: Arial, Helvetica, sans-serif;
+		}
+
+		.button {
+			display: inline-block;
+			text-decoration: none;
+			padding: 2px 6px;
+			margin: 2px;
+			background: #4479BA;
+			color: #FFF;
+			border-radius: 4px;
+			border: solid 1px #20538D;
+		}
+
+		.button:hover {
+			background: #356094;
+		}
+
+		.button-success {
+			background-color: green;
+			color: #FFF;
+			border-radius: 4px;
+			border: solid 1px darkolivegreen;
+		}
+
+		.button-success:hover {
+			background: darkgreen;
+		}
+
+		.button-error {
+			background-color: darkred;
+			color: #FFF;
+			border-radius: 4px;
+			border: solid 1px #440000;
+		}
+
+		.button-error:hover {
+			background: #660000;
+		}
+
+
+		.link,
+		.link:active,
+		.link:visited {
+			color: darkred;
+			text-decoration: none;
+			transition: font-size 200ms;
+		}
+
+		.link:hover {
+			font-size: larger;
+		}
+
+		table {
+			margin: 2vh 2vw;
+			margin-bottom: 2vh;
+		}
+
+		table>tbody>tr>td:first-child {
+			width: 30vw;
+		}
+	</style>
+`;
+
+const wrapView = view => `
+    <!doctype html>
     <html>
     <head>
         <meta charset="utf-8">
@@ -64,33 +123,34 @@ const indexView = quizzes =>
         ${style}
     </head>
     <body>
-        <h1>Quizzes</h1>` +
-    quizzes.map(quiz =>
-        `<div>
-                <a href="/quizzes/${quiz.id}/play">${quiz.question}</a>
-                <a href="/quizzes/${quiz.id}/edit"
-                   class="button">Edit</a>
-                <a href="/quizzes/${quiz.id}?_method=DELETE"
-                   onClick="return confirm('Delete: ${quiz.question}')"
-                   class="button">Delete</a>
-             </div>`).join("\n") +
-    `<a href="/quizzes/new" class="button">New Quiz</a>
+        ${view}
     </body>
     </html>`;
+
+// View to display all the quizzes in quizzes array
+const indexView = quizzes => wrapView(
+    `<h1>Quizzes</h1>
+    <table>
+        <tbody>
+    ` + quizzes.map(quiz =>
+        `<tr>
+            <td><a href="/quizzes/${quiz.id}/play" class="link">${quiz.question}</a></td>
+            <td><a href="/quizzes/${quiz.id}/edit" class="button">Edit</a></td>
+            <td><a href="/quizzes/${quiz.id}?_method=DELETE"
+                onClick="return confirm('Delete: ${quiz.question}')"
+                class="button button-error">Delete</a></td>
+        </tr>`
+        ).join("\n") +
+    `   </tbody>
+    </table>
+    <a href="/quizzes/new" class="button button-success">New Quiz</a>`
+);
 
 
 // View with form for trying to guess quiz
 // response - text of last trial (hidden param)
-const playView = (quiz, response) =>
-    `<!doctype html>
-  <html>
-  <head>
-      <meta charset="utf-8">
-      <title>Quiz</title>
-      ${style}
-  </head>
-  <body>
-      <h1>Play Quiz</h1>
+const playView = (quiz, response) => wrapView(
+    ` <h1>Play Quiz</h1>
       <form method="get" action="/quizzes/${quiz.id}/check">
           <label for="response">${quiz.question}: </label>
           <br>
@@ -98,43 +158,25 @@ const playView = (quiz, response) =>
           <input type="submit" class="button" value="Check">
       </form>
       <br>
-      <a href="/quizzes" class="button">Go back</a>
-  </body>
-  </html>`;
+      <a href="/quizzes" class="button">Go back</a>`
+);
 
 
 // View with the result of trying to guess the quiz.
 // id - played quiz id
 // msg - result of trial
 // response - user answer for next trial
-const resultView = (id, msg, response) =>
-    `<!doctype html>
-  <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Quiz</title>
-      ${style}
-  </head>
-  <body>
-    <h1>Result</h1>
+const resultView = (id, msg, response) => wrapView(
+    `<h1>Result</h1>
     <div id="msg"><strong>${msg}</strong></div>
     <a href="/quizzes" class="button">Go back</a>
-    <a href="/quizzes/${id}/play?response=${response}" class="button">Try again</a>
-  </body>
-  </html>`;
+    <a href="/quizzes/${id}/play?response=${response}" class="button">Try again</a>`
+);
 
 
 // View to show the form to create a new quiz.
-const newView = quiz => {
-    return `<!doctype html>
-  <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Quiz</title>
-    ${style}
-  </head>
-  <body>
-    <h1>Create New Quiz</h1>
+const newView = quiz => wrapView(
+    `<h1>Create New Quiz</h1>
     <form method="POST" action="/quizzes">
       <label for="question">Question: </label>
       <input type="text" name="question" value="${quiz.question}" placeholder="Question"> 
@@ -144,16 +186,24 @@ const newView = quiz => {
       <input type="submit" class="button" value="Create">
     </form>
     <br>
-    <a href="/quizzes" class="button">Go back</a>
-  </body>
-  </html>`;
-}
+    <a href="/quizzes" class="button">Go back</a>`
+);
 
 
 // View to show a form to edit a given quiz.
-const editView = (quiz) => {
-    // .... introducir código
-}
+const editView = quiz => wrapView(
+    `<h1>Edit Quiz</h1>
+    <form method="POST" action="/quizzes/${quiz.id}?_method=PUT">
+        <label for="question">Question: </label>
+        <input type="text" name="question" value="${quiz.question}" placeholder="Question"> 
+        <br>
+        <label for="answer">Answer: </label>
+        <input type="text" name="answer" value="${quiz.answer}" placeholder="Answer">
+        <input type="submit" class="button" value="Update">
+    </form>
+    <br>
+    <a href="/quizzes" class="button">Go back</a>
+`);
 
 
 // ========== CONTROLLERs ==========
@@ -222,18 +272,50 @@ const createController = async (req, res, next) => {
 };
 
 //  GET /quizzes/:id/edit
-const editController = (req, res, next) => {
-    // .... introducir código
+const editController = async (req, res, next) => {
+    const response = req.query.response;
+
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) return next(new Error(`"${req.params.id}" should be number.`));
+
+    try {
+        const quiz = await Quiz.findByPk(id);
+        
+        if (!quiz) return next(new Error(`Quiz ${id} not found.`));
+        
+        res.send(editView(quiz));
+    } catch (err) {
+        next(err)
+    }
+
 };
 
 //  PUT /quizzes/:id
-const updateController = (req, res, next) => {
-    // .... introducir código
+const updateController = async (req, res, next) => {
+    const {question, answer} = req.body;
+
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) return next(new Error(`"${req.params.id}" should be number.`));
+
+    try {
+        await Quiz.update({question, answer}, {where: {id}});
+        res.redirect(`/quizzes`);
+    } catch (err) {
+        next(err)
+    }
 };
 
 // DELETE /quizzes/:id
-const destroyController = (req, res, next) => {
-    // .... introducir código
+const destroyController = async (req, res, next) => {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) return next(new Error(`"${req.params.id}" should be number.`));
+
+    try {
+        await Quiz.destroy({where: {id}});
+        res.redirect(`/quizzes`);
+    } catch (err) {
+        next(err)
+    }
 };
 
 
@@ -245,12 +327,13 @@ app.get('/quizzes/:id/check', checkController);
 app.get('/quizzes/new', newController);
 app.post('/quizzes', createController);
 
-
 // ..... crear rutas e instalar los MWs para:
 //   GET  /quizzes/:id/edit
+app.get('/quizzes/:id/edit', editController);
 //   PUT  /quizzes/:id
+app.put('/quizzes/:id', updateController);
 //   DELETE  /quizzes/:id
-
+app.delete('/quizzes/:id', destroyController);
 
 app.all('*', (req, res) =>
     res.status(404).send("Error: resource not found or method not supported.")
