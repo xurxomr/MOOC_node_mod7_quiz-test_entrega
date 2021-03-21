@@ -7,8 +7,7 @@
     "main": "main.js",
     "scripts": {
         "start": "node main.js",
-        "test": "node tests/tester.js",
-        "tests": "mocha"
+        "test": "mocha"
     },
     "info": {
         "githubURL": "xurxomr/MOOC_node_mod7_quiz-test_entrega",
